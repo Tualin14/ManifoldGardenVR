@@ -1,0 +1,85 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <EnableNETAnalyzers>false</EnableNETAnalyzers>
+        <CheckEolTargetFramework>false</CheckEolTargetFramework>
+        <AssemblyName>MGVR</AssemblyName>
+    </PropertyGroup>
+    <ItemGroup>
+        <EmbeddedResource Include="Assets/VrGuide.en.png" LogicalName="MGVR.Assets.VrGuide.en.png" WithCulture="false"/>
+        <EmbeddedResource Include="Assets/VrGuide.zh-CN.png" LogicalName="MGVR.Assets.VrGuide.zh-CN.png" WithCulture="false"/>
+    </ItemGroup>
+    <ItemGroup>
+        <Reference Include="UnityEngine.UI">
+            <HintPath>$(GameRoot)MelonLoader\Il2CppAssemblies\UnityEngine.UI.dll</HintPath>
+            <Private>false</Private>
+        </Reference>
+        <Reference Include="Unity.TextMeshPro">
+            <HintPath>$(GameRoot)MelonLoader\Il2CppAssemblies\Unity.TextMeshPro.dll</HintPath>
+            <Private>false</Private>
+        </Reference>
+        <Reference Include="UnityEngine.TextRenderingModule">
+            <HintPath>$(GameRoot)MelonLoader\Il2CppAssemblies\UnityEngine.TextRenderingModule.dll</HintPath>
+            <Private>false</Private>
+        </Reference>
+        <Reference Include="UnityEngine.PhysicsModule">
+            <HintPath>$(GameRoot)MelonLoader\Il2CppAssemblies\UnityEngine.PhysicsModule.dll</HintPath>
+            <Private>false</Private>
+        </Reference>
+        <Reference Include="UnityEngine.UIModule">
+            <HintPath>$(GameRoot)MelonLoader\Il2CppAssemblies\UnityEngine.UIModule.dll</HintPath>
+            <Private>false</Private>
+        </Reference>
+        <ProjectReference Include="../ThirdParty/OpenVR/Valve.OpenVR.csproj"/>
+        <Reference Include="MelonLoader">
+            <HintPath>$(GameRoot)MelonLoader\net6\MelonLoader.dll</HintPath>
+            <Private>false</Private>
+        </Reference>
+        <Reference Include="0Harmony">
+            <HintPath>$(GameRoot)MelonLoader\net6\0Harmony.dll</HintPath>
+            <Private>false</Private>
+        </Reference>
+        <Reference Include="Il2CppInterop.Runtime">
+            <HintPath>$(GameRoot)MelonLoader\net6\Il2CppInterop.Runtime.dll</HintPath>
+            <Private>false</Private>
+        </Reference>
+        <Reference Include="Il2Cppmscorlib">
+            <HintPath>$(GameRoot)MelonLoader\Il2CppAssemblies\Il2Cppmscorlib.dll</HintPath>
+            <Private>false</Private>
+        </Reference>
+        <Reference Include="Il2CppSystem.Core">
+            <HintPath>$(GameRoot)MelonLoader\Il2CppAssemblies\Il2CppSystem.Core.dll</HintPath>
+            <Private>false</Private>
+        </Reference>
+        <Reference Include="UnityEngine.CoreModule">
+            <HintPath>$(GameRoot)MelonLoader\Il2CppAssemblies\UnityEngine.CoreModule.dll</HintPath>
+            <Private>false</Private>
+        </Reference>
+        <Reference Include="UnityEngine.ScreenCaptureModule">
+            <HintPath>$(GameRoot)MelonLoader\Il2CppAssemblies\UnityEngine.ScreenCaptureModule.dll</HintPath>
+            <Private>false</Private>
+        </Reference>
+        <Reference Include="UnityEngine.ImageConversionModule">
+            <HintPath>$(GameRoot)MelonLoader\Il2CppAssemblies\UnityEngine.ImageConversionModule.dll</HintPath>
+            <Private>false</Private>
+        </Reference>
+        <Reference Include="UnityEngine.SubsystemsModule">
+            <HintPath>$(GameRoot)MelonLoader\Il2CppAssemblies\UnityEngine.SubsystemsModule.dll</HintPath>
+            <Private>false</Private>
+        </Reference>
+        <Reference Include="UnityEngine.XRModule">
+            <HintPath>$(GameRoot)MelonLoader\Il2CppAssemblies\UnityEngine.XRModule.dll</HintPath>
+            <Private>false</Private>
+        </Reference>
+        <Reference Include="Assembly-CSharp">
+            <HintPath>$(GameRoot)MelonLoader\Il2CppAssemblies\Assembly-CSharp.dll</HintPath>
+            <Private>false</Private>
+        </Reference>
+        <Reference Include="Il2CppRewired_Core">
+            <HintPath>$(GameRoot)MelonLoader\Il2CppAssemblies\Il2CppRewired_Core.dll</HintPath>
+            <Private>false</Private>
+        </Reference>
+    </ItemGroup>
+</Project>

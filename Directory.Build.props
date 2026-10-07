@@ -1,0 +1,11 @@
+<Project>
+  <PropertyGroup>
+    <RepositoryRoot>$(MSBuildThisFileDirectory)</RepositoryRoot>
+    <BaseOutputPath>$(RepositoryRoot)Artifacts\Build\$(MSBuildProjectName)\</BaseOutputPath>
+    <BaseIntermediateOutputPath>$(RepositoryRoot)Artifacts\Obj\$(MSBuildProjectName)\</BaseIntermediateOutputPath>
+  </PropertyGroup>
+  <Import Project="$(RepositoryRoot)Build.Local.props" Condition="Exists('$(RepositoryRoot)Build.Local.props')" />
+  <PropertyGroup>
+    <GameRoot Condition="'$(GameRoot)' == '' and '$(MGVR_GAME_DIR)' != ''">$(MGVR_GAME_DIR)\</GameRoot>
+  </PropertyGroup>
+</Project>
