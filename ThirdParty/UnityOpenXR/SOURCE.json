@@ -1,0 +1,10 @@
+{
+  "package": "com.unity.xr.openxr",
+  "version": "1.3.1",
+  "origin": "Windows x64 build of the MGVR Unity 2020.3.49f1 XR validation project",
+  "files": {
+    "Plugins/x86_64/UnityOpenXR.dll": "0C60FE00E8C632E4886A2E74B84208686767BCED8C040DDE1290C33A56073938",
+    "Plugins/x86_64/openxr_loader.dll": "21159E0C94E42CE888D62DFE3050CB444274883EE739F7F7C74792B0C0288DCC",
+    "UnitySubsystems/UnityOpenXR/UnitySubsystemsManifest.json": "2BF5BF0AD6C0B9273120B14E4ABB5D933A786CD257988121898CBB6CD7AD8D77"
+  }
+}

@@ -37,10 +37,11 @@ internal static partial class VrSettingsMenu
     static readonly Dictionary<int, Page> pages = new();
     static readonly float[] angles = { 15, 30, 45, 60, 90 };
     static readonly float[] speeds = { 30, 45, 60, 90, 120, 180, 240 };
+    static readonly float[] strengths = { .25f, .5f, .75f, 1 };
 
     static readonly VrText[] titles =
     {
-        VrText.TurnMode, VrText.Angle, VrText.Speed
+        VrText.TurnMode, VrText.Angle, VrText.Speed, VrText.Haptics, VrText.HapticsStrength
     };
 
     internal static void Install(HarmonyLib.Harmony harmony)
@@ -225,10 +226,12 @@ internal static partial class VrSettingsMenu
             for (int row = 0; row < titles.Length; row++)
             {
                 int index = row;
-                float top = .805f - row * .053f;
-                page.Titles.Add(Label(page, root.transform, "Title " + row, "", .16f, top - .035f, .39f, top));
-                var button = Button(page, root.transform, "VR Option " + row, "", .42f,
-                    top - .035f, .58f, top,
+                bool haptic = row >= 3;
+                float top = .805f - (haptic ? row - 3 : row) * .053f;
+                page.Titles.Add(Label(page, root.transform, "Title " + row, "", haptic ? .62f : .16f,
+                    top - .035f, haptic ? .72f : .39f, top));
+                var button = Button(page, root.transform, "VR Option " + row, "", haptic ? .73f : .42f,
+                    top - .035f, haptic ? .85f : .58f, top,
                     () => Change(captured, index, 1), false);
                 page.Rows.Add(button);
                 page.Values.Add(button.GetComponentInChildren(Il2CppType.Of<TextMeshProUGUI>()).Cast<TMP_Text>());
@@ -263,6 +266,8 @@ internal static partial class VrSettingsMenu
                 () =>
                 {
                     VrBindings.ResetTurning(VrStartup.Settings);
+                    VrStartup.Settings.ResetHaptics();
+                    VrHaptics.Stop();
                     Save(captured);
                 });
             page.Back = Button(page, root.transform, "VR Back", "Back", .7875f, .04f, .85f, .08f,
@@ -411,8 +416,11 @@ internal static partial class VrSettingsMenu
         else if (row == 1) settings.SnapTurnDegrees = Cycle(angles, settings.SnapTurnDegrees, direction);
         else if (row == 2)
             settings.SmoothTurnDegreesPerSecond = Cycle(speeds, settings.SmoothTurnDegreesPerSecond, direction);
+        else if (row == 3) settings.HapticsEnabled = !settings.HapticsEnabled;
+        else if (row == 4) settings.HapticsStrength = Cycle(strengths, settings.HapticsStrength, direction);
         else return;
 
+        if (row >= 3) VrHaptics.Stop();
         Save(page);
     }
 
@@ -425,15 +433,13 @@ internal static partial class VrSettingsMenu
     static int GameLanguage =>
         (int)(Il2Cpp.LocalizationManager.Instance?.currentLanguage ?? Il2Cpp.LocalizationLanguage.English);
 
-    static int CurrentLanguage => VrMenuText.Language(GameLanguage);
-
     static void Refresh(Page page)
     {
         var settings = VrStartup.Settings;
-        page.Language = CurrentLanguage;
         page.GameLanguage = GameLanguage;
+        var latin = Il2Cpp.LocalizationManager.Instance?.fontSettings?.latin?.font ?? page.FontSource.font;
+        var font = VrMenuFont.Resolve(page.GameLanguage, latin, out page.Language);
         string T(VrText key) => VrMenuText.Get(page.Language, key);
-        var font = Il2Cpp.LocalizationManager.Instance?.fontSettings?.latin?.font ?? page.FontSource.font;
         page.DisplayFont = font;
         foreach (var text in page.Texts.Append(page.Tab.text))
         {
@@ -455,10 +461,12 @@ internal static partial class VrSettingsMenu
         page.ResetLabel.text = T(VrText.Reset);
         page.BackLabel.text = T(VrText.Back);
         page.Message.text = T(page.Saved switch { true => VrText.Saved, false => VrText.SaveFailed, _ => VrText.Hint }) +
-                            "  Test build: X opens level selection.";
+                            "  " + T(VrText.TestBuildHint);
         page.Values[0].text = T(settings.TurnMode == VrTurnMode.Snap ? VrText.Snap : VrText.Smooth);
         page.Values[1].text = $"{settings.SnapTurnDegrees:0}°";
         page.Values[2].text = $"{settings.SmoothTurnDegreesPerSecond:0}° / {T(VrText.PerSecond)}";
+        page.Values[3].text = T(settings.HapticsEnabled ? VrText.On : VrText.Off);
+        page.Values[4].text = $"{settings.HapticsStrength * 100:0}%";
     }
 
     internal static void Report(bool open = false)

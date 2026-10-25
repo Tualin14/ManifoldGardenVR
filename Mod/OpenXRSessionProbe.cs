@@ -227,6 +227,7 @@ internal static class OpenXRSessionProbe
 
     internal static void Shutdown()
     {
+        VrHaptics.Stop();
         QuestInput.Reset();
         OpenXRControllerActions.Reset();
         startRequested = false;

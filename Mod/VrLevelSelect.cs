@@ -16,66 +16,30 @@ namespace ManifoldProbe;
 internal static class VrLevelSelect
 {
     static Il2Cpp.MenuPanel? panel, previous;
-    static TMP_Text? heading, message;
+    static TMP_Text? heading, message, notice;
     static TestLevel[] levels = Array.Empty<TestLevel>();
     static readonly List<Button> buttons = new();
+    static readonly List<TMP_Text> texts = new();
     static TMP_FontAsset? font;
+    static int language;
     static Color ink;
     static int page;
-    static bool wasPaused, loading, saveGuardReady;
-    internal static bool TestSession { get; private set; }
+    static bool wasPaused, loading, ready, saveBackupCreated;
 
     internal static void Install(HarmonyLib.Harmony harmony)
     {
-        var patched = new List<(System.Reflection.MethodInfo method, System.Reflection.MethodInfo patch)>();
         try
         {
-            void Prefix(Type type, string name, string callback, Type[]? args = null)
-            {
-                var method = AccessTools.Method(type, name, args) ?? throw new MissingMethodException(type.Name, name);
-                var patch = AccessTools.Method(typeof(VrLevelSelect), callback);
-                harmony.Patch(method, prefix: new HarmonyMethod(patch));
-                patched.Add((method, patch));
-            }
-            Prefix(typeof(Il2Cpp.SaveGameManager), "get_CanSave", nameof(CanSave));
-            Prefix(typeof(Il2Cpp.SaveGameManager), "get_CanAutoSave", nameof(CanSave));
-            Prefix(typeof(Il2Cpp.SaveGameManager), "WriteSaveNow", nameof(WriteSave), new[] { typeof(bool), typeof(bool) });
-            Prefix(typeof(Il2Cpp.SaveGameManager), "WriteSaveNow", nameof(WriteSave),
-                new[] { typeof(bool), typeof(float).MakeByRefType(), typeof(bool) });
-            // Also block direct serializer calls, including an exit/save routine already queued.
-            Prefix(typeof(Il2Cpp.SaveGameManager), "SerializeSaveSlotWriteToDisk", nameof(SerializeSave));
-            Prefix(typeof(Il2Cpp.MenuPanel), "PanelUpdate", nameof(PanelUpdate));
-            saveGuardReady = true;
-            Probe.Write("VR_LEVEL_SELECT_HOOKS_READY");
+            var method = AccessTools.Method(typeof(Il2Cpp.MenuPanel), "PanelUpdate") ??
+                throw new MissingMethodException(nameof(Il2Cpp.MenuPanel), "PanelUpdate");
+            harmony.Patch(method, prefix: new HarmonyMethod(AccessTools.Method(typeof(VrLevelSelect), nameof(PanelUpdate))));
+            ready = true;
+            Probe.Write("VR_LEVEL_SELECT_HOOKS_READY saving=native");
         }
         catch (Exception ex)
         {
-            foreach (var entry in patched) harmony.Unpatch(entry.method, entry.patch);
             Probe.Write("VR_LEVEL_SELECT_INSTALL_ERROR " + ex);
         }
-    }
-
-    static bool CanSave(ref bool __result)
-    {
-        if (!TestSession) return true;
-        __result = false;
-        return false;
-    }
-
-    static bool WriteSave(ref Coroutine __result)
-    {
-        if (!TestSession) return true;
-        __result = null!;
-        Probe.Write("VR_TEST_SAVE_BLOCKED");
-        return false;
-    }
-
-    static bool SerializeSave(ref Il2CppSystem.Collections.IEnumerator __result)
-    {
-        if (!TestSession) return true;
-        __result = new Il2CppSystem.Collections.ArrayList().GetEnumerator();
-        Probe.Write("VR_TEST_SERIALIZE_BLOCKED");
-        return false;
     }
 
     static bool PanelUpdate(Il2Cpp.MenuPanel __instance)
@@ -89,14 +53,9 @@ internal static class VrLevelSelect
 
     internal static void Tick()
     {
-        if (!saveGuardReady) return;
+        if (!ready) return;
         try
         {
-            if (TestSession && Il2Cpp.SaveGameManager.HasInstance)
-            {
-                var save = Il2Cpp.SaveGameManager.Instance;
-                save.AutoSaveEnabled = save.DebugAutoSaveEnabled = false;
-            }
             if (QuestInput.LevelSelectPressed)
             {
                 if (panel != null && panel.PanelActive) Cancel();
@@ -128,9 +87,7 @@ internal static class VrLevelSelect
         if (levels.Length == 0) { Probe.Write("VR_LEVEL_CATALOG_EMPTY"); return; }
         File.WriteAllText(Path.Combine(Probe.Output, "test-levels.json"),
             System.Text.Json.JsonSerializer.Serialize(levels, new System.Text.Json.JsonSerializerOptions { WriteIndented = true }));
-        var current = Il2Cpp.LevelLoader.CurrentLevelSystems?.gameObject.scene.name;
-        int index = Array.FindIndex(levels, l => l.Scene == current);
-        page = Math.Max(0, index) / LevelCatalog.PageSize;
+        page = 0;
         if (panel == null) Build();
         previous = Il2Cpp.GameManager.UI.currentPanel;
         wasPaused = Il2Cpp.GameManager.IsPaused;
@@ -141,7 +98,7 @@ internal static class VrLevelSelect
         else Il2Cpp.GameManager.UI.SetActivePanel(panel, true);
         QuestInput.Reset();
         VrMenu.ResetAnchor();
-        Probe.Write($"VR_LEVEL_SELECT_OPEN count={levels.Length} current={current}");
+        Probe.Write($"VR_LEVEL_SELECT_OPEN count={levels.Length}");
     }
 
     static T Add<T>(GameObject go) where T : Component => go.AddComponent(Il2CppType.Of<T>()).Cast<T>();
@@ -165,6 +122,7 @@ internal static class VrLevelSelect
         text.color = ink; text.alignment = TextAlignmentOptions.Center;
         text.enableWordWrapping = false; text.richText = false; text.raycastTarget = false;
         text.text = value;
+        texts.Add(text);
         return text;
     }
 
@@ -208,7 +166,11 @@ internal static class VrLevelSelect
         panel.canvas = canvas; panel.menuBackground = template.menuBackground;
         panel.makeActiveWhenOpened = true;
         heading = Text(root.transform, "Test Levels", .1f, .86f, .9f, .94f);
-        message = Text(root.transform, "", .08f, .10f, .92f, .15f);
+        message = Text(root.transform, "", .08f, .81f, .92f, .86f);
+        notice = Text(root.transform, "", .08f, .105f, .92f, .205f);
+        notice.enableWordWrapping = true;
+        notice.fontSize = notice.fontSizeMax = 18;
+        notice.fontSizeMin = 14;
         for (int row = 0; row < 6; row++)
         for (int col = 0; col < 3; col++)
         {
@@ -226,16 +188,31 @@ internal static class VrLevelSelect
 
     static void Refresh()
     {
-        heading!.text = $"Test Levels  {page + 1} / {LevelCatalog.PageCount(levels.Length)}  ({levels.Length})";
-        message!.text = TestSession ? "TEST SESSION: saving disabled until game restart.  A: enter / B: back / Grips: pages"
-            : "A: enter / B: back / Grips: pages. Entering a test level disables saving until game restart.";
+        var latin = Il2Cpp.LocalizationManager.Instance.fontSettings.latin.font;
+        font = VrMenuFont.Resolve((int)Il2Cpp.LocalizationManager.Instance.currentLanguage, latin, out language);
+        foreach (var text in texts)
+        {
+            text.font = font;
+            text.fontSharedMaterial = font.material;
+            text.isRightToLeftText = false;
+        }
+        heading!.text = $"{T(VrText.TestLevels)}  {page + 1} / {LevelCatalog.PageCount(levels.Length)}  ({levels.Length})";
+        message!.text = T(VrText.LevelPointerHint);
+        notice!.text = T(VrText.LevelNotice);
+        for (int i = 0; i < 3; i++)
+            buttons[LevelCatalog.PageSize + i].GetComponentInChildren(Il2CppType.Of<TextMeshProUGUI>())
+                .Cast<TMP_Text>().text = T(i switch { 0 => VrText.Previous, 1 => VrText.Next, _ => VrText.Back });
         var active = new List<Button>();
         for (int i = 0; i < LevelCatalog.PageSize; i++)
         {
             int index = page * LevelCatalog.PageSize + i;
             buttons[i].gameObject.SetActive(index < levels.Length);
             if (index >= levels.Length) continue;
-            buttons[i].GetComponentInChildren(Il2CppType.Of<TextMeshProUGUI>()).Cast<TMP_Text>().text = levels[index].Label;
+            var label = buttons[i].GetComponentInChildren(Il2CppType.Of<TextMeshProUGUI>()).Cast<TMP_Text>();
+            // Internal scene names keep the existing Latin face and spelling.
+            label.font = latin;
+            label.fontSharedMaterial = latin.material;
+            label.text = levels[index].Label;
             active.Add(buttons[i]);
         }
         active.AddRange(buttons.Skip(LevelCatalog.PageSize));
@@ -243,6 +220,8 @@ internal static class VrLevelSelect
             button.navigation = new Navigation { mode = Navigation.Mode.None };
         if (EventSystem.current != null) EventSystem.current.SetSelectedGameObject(active[0].gameObject);
     }
+
+    static string T(VrText key) => VrMenuText.Get(language, key);
 
     static void ChangePage(int direction)
     {
@@ -268,10 +247,10 @@ internal static class VrLevelSelect
         if (loading || index < 0 || index >= levels.Length) return;
         if (Il2Cpp.LevelLoader.IsLoadingOrPendingLoad || !Il2Cpp.SaveGameManager.HasInstance ||
             Il2Cpp.SaveGameManager.Instance.currentlyMakingGameSave)
-        { message!.text = "Game is loading or saving. Please wait, then try again."; return; }
+        { message!.text = T(VrText.LevelBusy); return; }
         try
         {
-            if (!TestSession)
+            if (!saveBackupCreated)
             {
                 string source = Il2Cpp.SaveGameManager.Instance.currentSaveFilePath;
                 if (string.IsNullOrWhiteSpace(source) || !File.Exists(source))
@@ -281,17 +260,18 @@ internal static class VrLevelSelect
                 foreach (var file in Directory.EnumerateFiles(Path.GetDirectoryName(source)!))
                     File.Copy(file, Path.Combine(backup, Path.GetFileName(file)));
                 Probe.Write("VR_TEST_SAVE_BACKUP " + backup);
-                TestSession = true;
+                saveBackupCreated = true;
             }
             loading = true;
-            message!.text = "Loading " + levels[index].Label;
+            message!.text = string.Format(System.Globalization.CultureInfo.InvariantCulture,
+                T(VrText.LoadingLevel), levels[index].Label);
             foreach (var button in buttons) button.interactable = false;
             MelonCoroutines.Start(Load(levels[index].Scene));
         }
         catch (Exception ex)
         {
             loading = false;
-            message!.text = "Could not start test level. See MGVR log.";
+            message!.text = T(VrText.LevelStartFailed);
             Probe.Write("VR_TEST_LOAD_ERROR " + ex);
         }
     }
@@ -337,7 +317,7 @@ internal static class VrLevelSelect
             }
             else
             {
-                message!.text = "Level load failed. Choose another level, or restart and reload your save.";
+                message!.text = T(VrText.LevelLoadFailed);
                 Probe.Write("VR_TEST_LOAD_FAILED scene=" + scene);
             }
         }

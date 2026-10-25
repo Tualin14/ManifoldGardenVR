@@ -1,3 +1,6 @@
+using System.Reflection;
+using System.Text.Json;
+
 namespace ManifoldProbe;
 
 internal enum VrText
@@ -23,37 +26,40 @@ internal enum VrText
     Saved,
     SaveFailed,
     FixedControls,
-    PerSecond
+    PerSecond,
+    Haptics,
+    HapticsStrength,
+    On,
+    Off,
+    TestBuildHint, TestLevels, LevelPointerHint, LevelNotice, Previous, Next,
+    LevelBusy, LoadingLevel, LevelStartFailed, LevelLoadFailed
 }
 
 internal static class VrMenuText
 {
-    // The shipped Chinese atlas is a subset. Keep this added page in English.
-    internal static int Language(int gameLanguage) => 0;
+    // Only Simplified Chinese opts into this translation. Traditional Chinese,
+    // unsupported and unknown languages retain English.
+    internal static int Language(int gameLanguage) => gameLanguage == 7 ? 7 : 0;
 
     // The game's LocalizationLanguage.Chinese_Simplified is 7. Traditional
     // Chinese and all other languages intentionally use the English image.
     internal static string GuideResource(int gameLanguage) =>
         gameLanguage == 7 ? "MGVR.Assets.VrGuide.zh-CN.png" : "MGVR.Assets.VrGuide.en.png";
 
-    static readonly string[] english =
-    {
-        "VR Settings", "Turning", "Snap angle", "Smooth turn speed", "Pick up / Drop / Interact", "Change gravity",
-        "Run", "Rotate item clockwise", "Rotate item counterclockwise", "Snap", "Smooth",
-        "Left trigger", "Left grip", "Right trigger", "Right grip", "Reset", "Back",
-        "Changes apply and save immediately.",
-        "Saved. Return to the game to use these settings.",
-        "Could not save. These settings apply for this session.",
-        "Left stick: move\nRight stick: turn view\n" +
-        "Left grip: run\nRight grip: change gravity\n" +
-        "Right trigger: pick up / drop / interact using the right-hand ray\n" +
-        "A: rotate item clockwise\nB: rotate item counterclockwise\n" +
-        "Y: hold 1s to recenter height and heading; center sticks first, release Y to rearm\n" +
-        "Menu button: menu\nMeta button: Quest system menu\n" +
-        "X: test level selection\nLeft trigger / stick clicks: no action\nHeadset controls look.\n" +
-        "Menu: point with right hand; right trigger clicks / drags. Click Back to return.",
-        "s"
-    };
+    static readonly string[][] texts = Load();
 
-    internal static string Get(int language, VrText key) => english[(int)key];
+    static string[][] Load()
+    {
+        using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("MGVR.Assets.MenuText.json")
+                           ?? throw new FileNotFoundException("MGVR.Assets.MenuText.json");
+        var catalog = JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, string>>>(stream)
+                      ?? throw new InvalidDataException("Empty VR menu translation catalog");
+        // Build indexed arrays once. Per-frame tab updates never parse JSON,
+        // allocate enum names or search a translation dictionary.
+        return new[] { "en", "zh-CN" }.Select(locale => Enum.GetValues<VrText>()
+            .Select(key => catalog[locale][key.ToString()]).ToArray()).ToArray();
+    }
+
+    internal static string Get(int language, VrText key) =>
+        texts[Language(language) == 7 ? 1 : 0][(int)key];
 }

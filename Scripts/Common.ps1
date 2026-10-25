@@ -18,3 +18,10 @@ function Get-MGVRMSBuild {
     if(-not $install){throw 'Visual Studio C++ build tools are required.'}
     return Join-Path $install 'MSBuild/Current/Bin/MSBuild.exe'
 }
+function Get-MGVRCecilPath {
+    $path = Join-Path (Get-MGVRGameRoot) 'MelonLoader/net6/Mono.Cecil.dll'
+    if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
+        throw 'Mono.Cecil.dll is missing. Install MelonLoader 0.7.3 in the configured game directory.'
+    }
+    return $path
+}

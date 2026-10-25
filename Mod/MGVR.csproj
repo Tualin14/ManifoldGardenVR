@@ -6,8 +6,16 @@
         <EnableNETAnalyzers>false</EnableNETAnalyzers>
         <CheckEolTargetFramework>false</CheckEolTargetFramework>
         <AssemblyName>MGVR</AssemblyName>
+        <Version>1.0.0</Version>
+        <Product>Manifold Garden VR</Product>
+        <Authors>Tualin14</Authors>
+        <Description>PC VR support for Manifold Garden.</Description>
     </PropertyGroup>
     <ItemGroup>
+        <EmbeddedResource Include="Assets/MenuText.json" LogicalName="MGVR.Assets.MenuText.json" WithCulture="false"/>
+        <EmbeddedResource Include="Assets/MenuFont.zh-CN.json" LogicalName="MGVR.Assets.MenuFont.zh-CN.json" WithCulture="false"/>
+        <EmbeddedResource Include="Assets/MenuFont.zh-CN.alpha" LogicalName="MGVR.Assets.MenuFont.zh-CN.alpha" WithCulture="false"/>
+        <EmbeddedResource Include="Assets/MenuFont.OFL.txt" LogicalName="MGVR.Assets.MenuFont.OFL.txt" WithCulture="false"/>
         <EmbeddedResource Include="Assets/VrGuide.en.png" LogicalName="MGVR.Assets.VrGuide.en.png" WithCulture="false"/>
         <EmbeddedResource Include="Assets/VrGuide.zh-CN.png" LogicalName="MGVR.Assets.VrGuide.zh-CN.png" WithCulture="false"/>
     </ItemGroup>
@@ -22,6 +30,10 @@
         </Reference>
         <Reference Include="UnityEngine.TextRenderingModule">
             <HintPath>$(GameRoot)MelonLoader\Il2CppAssemblies\UnityEngine.TextRenderingModule.dll</HintPath>
+            <Private>false</Private>
+        </Reference>
+        <Reference Include="UnityEngine.TextCoreModule">
+            <HintPath>$(GameRoot)MelonLoader\Il2CppAssemblies\UnityEngine.TextCoreModule.dll</HintPath>
             <Private>false</Private>
         </Reference>
         <Reference Include="UnityEngine.PhysicsModule">

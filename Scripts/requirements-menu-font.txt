@@ -1,0 +1,4 @@
+fonttools==4.60.1
+numpy==2.3.5
+Pillow==12.3.0
+scipy==1.16.2

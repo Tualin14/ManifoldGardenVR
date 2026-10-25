@@ -5,12 +5,12 @@ using MelonLoader;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-[assembly: MelonInfo(typeof(ManifoldProbe.Probe), "Manifold Garden VR (Experimental)", "0.8.29", "Local VR research")]
+[assembly: MelonInfo(typeof(ManifoldProbe.Probe), "Manifold Garden VR", "1.0.0", "Tualin14")]
 [assembly: MelonGame("William Chyr Studio", "Manifold Garden")]
 
 namespace ManifoldProbe;
 
-// Opt-in diagnostics and OpenVR head tracking. Does not write game saves.
+// VR launch gate, game hooks and diagnostic commands.
 public sealed class Probe : MelonMod
 {
     internal static readonly string Output = ResolveOutput();
@@ -52,7 +52,7 @@ public sealed class Probe : MelonMod
 
         // Without --vr, leave every hook, menu, configuration and diagnostic inactive.
         instance = this;
-        Write("PLUGIN_LOADED version=0.8.29 baseline=0.8.17");
+        Write("PLUGIN_LOADED version=1.0.0");
         VrStartup.Initialize(arguments: arguments);
     }
 
@@ -65,6 +65,8 @@ public sealed class Probe : MelonMod
         VrSettingsMenu.Install(HarmonyInstance);
         VrLevelSelect.Install(HarmonyInstance);
         VrMenuPointer.Install(HarmonyInstance);
+        VrHaptics.Install(HarmonyInstance);
+        VrSaveDiagnostics.Install(HarmonyInstance);
         nextSnapshot = Time.realtimeSinceStartupAsDouble + 8;
         Write("LATE_INITIALIZE_COMPLETE");
     }
@@ -248,6 +250,8 @@ public sealed class Probe : MelonMod
                 if (cmd == "probe-camera") pendingProbe = true;
                 if (cmd == "snapshot") Snapshot();
                 if (cmd == "xr-input-status") QuestInput.Report();
+                if (cmd == "xr-haptics-status") VrHaptics.Report();
+                if (cmd == "xr-haptics-test") VrHaptics.TestOutput();
                 if (cmd == "xr-settings-status") VrSettingsMenu.Report();
                 if (cmd == "xr-settings-open") VrSettingsMenu.Report(true);
                 if (cmd == "xr-movement-trace") MovementDiagnostics.Start();
@@ -363,7 +367,10 @@ public sealed class Probe : MelonMod
         if (!VrStartup.LaunchedInVr) return;
         VrSettingsMenu.Tick();
         VrLevelSelect.Tick();
+        VrPauseMenu.Tick();
         VrMenuPointer.Tick();
+        VrHaptics.Tick();
+        VrSaveDiagnostics.Tick();
         if (!pendingProbe) return;
         pendingProbe = false;
         var camera = playerCamera != null ? playerCamera : Camera.main;
@@ -426,6 +433,7 @@ public sealed class Probe : MelonMod
     {
         if (!VrStartup.LaunchedInVr) return;
         MovementDiagnostics.Stop();
+        VrHaptics.Stop();
         OpenXRSessionProbe.Shutdown();
         VrDisplay.Stop();
         HeadTracking.Shutdown();

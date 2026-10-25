@@ -13,6 +13,8 @@ internal sealed class VrSettings
     public bool SuppressDistortion { get; set; } = true;
     public float RenderScale { get; set; } = 0.65f;
     public bool ControllersEnabled { get; set; } = true;
+    public bool HapticsEnabled { get; set; } = true;
+    public float HapticsStrength { get; set; } = 1;
     public float ControllerDeadzone { get; set; } = 0.2f;
     public float SnapTurnDegrees { get; set; } = 45;
     public VrTurnMode TurnMode { get; set; } = VrTurnMode.Snap;
@@ -32,6 +34,14 @@ internal sealed class VrSettings
                                       VrBindings.Valid(this);
 
     internal static bool ValidScale(float value) => float.IsFinite(value) && value >= 0.25f && value <= 1.5f;
+
+    internal bool ValidHaptics => float.IsFinite(HapticsStrength) && HapticsStrength >= 0 && HapticsStrength <= 1;
+
+    internal void ResetHaptics()
+    {
+        HapticsEnabled = true;
+        HapticsStrength = 1;
+    }
 
     internal static VrSettings Load(string path, Action<string> log)
     {
@@ -56,6 +66,7 @@ internal sealed class VrSettings
 
             if (!settings.ValidControllers)
                 throw new JsonException("Invalid VR turn mode, speed, deadzone or button mappings");
+            if (!settings.ValidHaptics) throw new JsonException("HapticsStrength must be between 0 and 1");
             if (storedLayout < CurrentControlLayoutVersion)
             {
                 log("VR_CONTROL_LAYOUT_MIGRATED version=" + CurrentControlLayoutVersion);
@@ -78,6 +89,7 @@ internal sealed class VrSettings
         {
             if (!ValidScale(RenderScale)) throw new InvalidOperationException("Invalid render scale");
             if (!ValidControllers) throw new InvalidOperationException("Invalid controller configuration");
+            if (!ValidHaptics) throw new InvalidOperationException("Invalid haptic strength");
             Directory.CreateDirectory(Path.GetDirectoryName(path)!);
             File.WriteAllText(temporary,
                 JsonSerializer.Serialize(this, new JsonSerializerOptions { WriteIndented = true }));
