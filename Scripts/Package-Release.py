@@ -134,6 +134,13 @@ def main():
     }
     for name, path in documents.items():
         source_file('MGVR-Info/' + name, path)
+    changelog = files['MGVR-Info/CHANGELOG.md'].decode('utf-8-sig').replace('\r\n', '\n')
+    current_section = changelog.split(f'## {version}\n', 1)
+    if len(current_section) != 2:
+        raise ValueError('CHANGELOG is missing the release version: ' + version)
+    release_changes = current_section[1].split('\n## ', 1)[0].strip()
+    if not release_changes:
+        raise ValueError('CHANGELOG has no release notes for: ' + version)
     notices = f'''# Third-party components in MGVR {version}
 
 MGVR: {REPOSITORY}/tree/{commit}
@@ -191,7 +198,7 @@ The project uses AGPL-3.0; see LICENSE. Dependencies retain their own licenses.
     (args.output / 'SHA256SUMS.txt').write_text(f'{checksum}  {binary_zip.name}\n', encoding='utf-8')
     release_notes = f'''# MGVR {version}
 
-首个正式版，支持头部跟踪、Quest 手柄移动与转向、重力切换、射线交互与菜单、震动反馈和简体中文界面。
+{release_changes}
 
 ## 安装
 
@@ -201,7 +208,6 @@ The project uses AGPL-3.0; see LICENSE. Dependencies retain their own licenses.
 
 ## 已知问题
 
-- 远处门内场景可能局部遮挡，靠近后正常。
 - 测试选关可能影响游戏状态或进度，尤其结局等特殊流程；建议备份并使用测试存档。
 
 GitHub 自动提供的 Source code 为源码，不能直接用于安装。

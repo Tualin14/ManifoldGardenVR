@@ -1,12 +1,12 @@
 # Manifold Garden VR（MGVR）
 
-Manifold Garden 的非官方 PC VR Mod。**1.0.0 首个正式版**，支持头部跟踪、Quest 手柄移动与转向、重力切换、射线交互、VR 菜单和震动反馈。需要拥有原游戏。
+Manifold Garden 的非官方 PC VR Mod，当前版本 **1.0.1**。支持头部跟踪、Quest 手柄移动与转向、重力切换、射线交互、VR 菜单和震动反馈。需要拥有原游戏。
 
 已验证：Windows x64、Steam 版、Quest 3、Virtual Desktop / VDXR。其他设备与运行时尚未系统验证。
 
 ## 安装与启动
 
-1. 在 [Releases](https://github.com/Tualin14/ManifoldGardenVR/releases) 下载 **`MGVR-1.0.0-Windows-x64.zip`**，不要下载 `Source code`。
+1. 在 [Releases](https://github.com/Tualin14/ManifoldGardenVR/releases) 下载 **`MGVR-1.0.1-Windows-x64.zip`**，不要下载 `Source code`。
 2. 退出游戏并备份存档。在 Steam 中右键游戏 → 管理 → 浏览本地文件，打开包含 `ManifoldGarden.exe` 的目录。
 3. 将压缩包内的全部文件和文件夹复制进去，合并文件夹并覆盖同名文件。更新时保留 `UserData` 和存档。
 4. 连接头显并进入 PCVR，在 Steam → 游戏属性 → 启动选项中填入 **`--vr`**，然后启动。
@@ -41,7 +41,6 @@ Manifold Garden 的非官方 PC VR Mod。**1.0.0 首个正式版**，支持头�
 
 ## 已知问题与反馈
 
-- 远处看关卡交界门时，门内场景可能局部遮挡，靠近后正常。
 - 测试选关可能导致游戏状态或进度异常，尤其是结局等特殊流程。建议备份存档并使用测试存档。
 
 通过 [Issues](https://github.com/Tualin14/ManifoldGardenVR/issues) 反馈时，请附版本、设备、所在关卡及复现步骤。
