@@ -12,13 +12,16 @@ internal static class QuestInput
     static int sampledFrame = -1, turnedFrame = -1, cameraId;
     static ControllerContext context;
     static bool installed, failed;
+
     static HandInput left, right;
+
     // Read cached state without sampling devices or consuming a gameplay query.
     internal static string MovementState =>
         $"inputContext={context} inputFrame={sampledFrame} vrStick=({policy.MoveX:F4},{policy.MoveY:F4})";
 
     internal static bool RayMenuActive => VrStartup.Enabled && OpenXRSessionProbe.Running &&
-        GameInput.IsSetUp && GameInput.currentControlMapping == GameInput.MG_ControlMapping.menu;
+                                          GameInput.IsSetUp && GameInput.currentControlMapping ==
+                                          GameInput.MG_ControlMapping.menu;
 
     internal static (bool valid, bool held, bool down, bool up) MenuPointerState
     {
@@ -92,11 +95,22 @@ internal static class QuestInput
             GameInput.Instance.DisableInput)
             return ControllerContext.Blocked;
         if (GameInput.currentControlMapping == GameInput.MG_ControlMapping.menu) return ControllerContext.Menu;
+        var player = Il2Cpp.GameManager.PlayerController;
         if (GameInput.currentControlMapping != GameInput.MG_ControlMapping.gameplay || !Probe.HasWorldCamera ||
-            !Il2Cpp.GameManager.DoUpdate || Il2Cpp.GameManager.PlayerController == null ||
-            Il2Cpp.GameManager.PlayerController.IsFrozen) return ControllerContext.Blocked;
-        return ControllerContext.Gameplay;
+            !Il2Cpp.GameManager.DoUpdate || player == null) return ControllerContext.Blocked;
+        if (!player.IsFrozen) return ControllerContext.Gameplay;
+
+        // EnableAudioVisualMode deliberately freezes movement, while its native
+        // Update still polls held Interact to advance the post-God-Cube sequence.
+        // Expose only that action; unrelated freezes and listening puzzles stay blocked.
+        var dark = Il2Cpp.GameManager.DarkModeController;
+        return !Il2Cpp.LevelLoader.IsLoadingOrPendingLoad && dark != null && dark.InAudioVisualLevel &&
+               dark.CurrentAudioVisualLevel != null && !dark.currentlyTransitioningOutOfAudioVisualLevel
+            ? ControllerContext.AudioVisual
+            : ControllerContext.Blocked;
     }
+
+    internal static bool AudioVisualContinueActive => GetContext() == ControllerContext.AudioVisual;
 
     static HandInput ReadHand(XRNode node)
     {
@@ -128,6 +142,8 @@ internal static class QuestInput
                 Reset();
                 context = next;
                 cameraId = nextCamera;
+                if (next == ControllerContext.AudioVisual)
+                    Probe.Write("QUEST_AV_CONTINUE_CONTEXT binding=" + VrStartup.Settings.InteractBinding);
             }
 
             if (sampledFrame == Time.frameCount) return;
@@ -136,7 +152,14 @@ internal static class QuestInput
             right = next == ControllerContext.Blocked ? default : ReadHand(XRNode.RightHand);
             policy.Step(Time.realtimeSinceStartupAsDouble, next, left, right,
                 VrStartup.Settings.ControllerDeadzone, VrStartup.Settings.SnapTurnDegrees, VrStartup.Settings);
-            if ((policy.Down & ControllerButtons.Interact) != 0) VrInteraction.ReportInteract();
+            if ((policy.Down & ControllerButtons.Interact) != 0)
+            {
+                if (context == ControllerContext.AudioVisual) Probe.Write("QUEST_AV_CONTINUE_DOWN");
+                else VrInteraction.ReportInteract();
+            }
+
+            if (context == ControllerContext.AudioVisual && (policy.Up & ControllerButtons.Interact) != 0)
+                Probe.Write("QUEST_AV_CONTINUE_UP");
             if (policy.Recenter)
             {
                 OpenXRRenderer.RequestRecenter();
@@ -187,10 +210,7 @@ internal static class QuestInput
 
     internal static int MenuTabDirection
     {
-        get
-        {
-            return 0;
-        }
+        get { return 0; }
     }
 
     static void Axis(string __0, ref float __result)

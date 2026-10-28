@@ -35,7 +35,8 @@
     "LevelBusy": "Game is loading or saving. Please wait, then try again.",
     "LoadingLevel": "Loading {0}",
     "LevelStartFailed": "Could not start test level. See MGVR log.",
-    "LevelLoadFailed": "Level load failed. Choose another level, or restart and reload your save."
+    "LevelLoadFailed": "Level load failed. Choose another level, or restart and reload your save.",
+    "HoldInput": "Hold {0}"
   },
   "zh-CN": {
     "Tab": "VR 设置",
@@ -73,6 +74,7 @@
     "LevelBusy": "游戏正在加载或保存，请稍后重试。",
     "LoadingLevel": "正在加载 {0}",
     "LevelStartFailed": "无法进入测试关卡，请查看 MGVR 日志。",
-    "LevelLoadFailed": "关卡加载失败。请选择其他关卡，或重启游戏后读取存档。"
+    "LevelLoadFailed": "关卡加载失败。请选择其他关卡，或重启游戏后读取存档。",
+    "HoldInput": "长按{0}"
   }
 }

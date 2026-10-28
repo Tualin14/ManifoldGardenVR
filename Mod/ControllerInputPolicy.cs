@@ -4,7 +4,8 @@ internal enum ControllerContext
 {
     Blocked,
     Gameplay,
-    Menu
+    Menu,
+    AudioVisual
 }
 
 internal readonly record struct HandInput(
@@ -166,7 +167,7 @@ internal sealed class ControllerInputPolicy
                 menuTriggerHeld = right.Trigger >= (menuTriggerHeld ? .45f : .65f);
                 if (menuTriggerHeld) next |= ControllerButtons.MenuClick;
             }
-            else
+            else if (context == ControllerContext.Gameplay)
             {
                 if (settings?.TurnMode == VrTurnMode.Smooth)
                 {
@@ -201,6 +202,7 @@ internal sealed class ControllerInputPolicy
                 lost |= action; // Ignore legacy X mappings without synthesizing release actions.
                 continue;
             }
+
             bool ready = VrBindings.IsLeft(source) ? leftReady : rightReady;
             if (!ready) lost |= action;
             int index = (int)source;
@@ -213,7 +215,9 @@ internal sealed class ControllerInputPolicy
                 VrButton.B => hand.Secondary ? 1 : 0,
                 _ => 0
             };
-            buttonHeld[index] = ready && context == ControllerContext.Gameplay &&
+            bool actionAllowed = context == ControllerContext.Gameplay ||
+                                 context == ControllerContext.AudioVisual && action == ControllerButtons.Interact;
+            buttonHeld[index] = ready && actionAllowed &&
                                 value >= (buttonHeld[index] ? .45f : .65f);
             if (buttonHeld[index]) next |= action;
         }

@@ -47,7 +47,7 @@ def main():
     source_paths = ['Mod', 'Native', 'ThirdParty', 'Scripts/Build.ps1', 'Scripts/Common.ps1',
                     'Scripts/Verify-Release.ps1', 'Scripts/Package-Release.py', 'Scripts/build-menu-font.py',
                     'Scripts/requirements-menu-font.txt', 'Directory.Build.props', 'Build.Local.props.example',
-                    'ManifoldGardenVR.sln', 'README.md', 'CHANGELOG.md', 'LICENSE']
+                    'ManifoldGardenVR.sln', 'README.md', 'README.en.md', 'CHANGELOG.md', 'LICENSE']
     if git('diff', '--name-only', args.tag, '--', *source_paths).strip():
         raise ValueError('Release sources differ from the tag.')
     tracked = set(git('ls-tree', '-r', '--name-only', commit).decode().splitlines())
@@ -55,7 +55,7 @@ def main():
     required = [p.relative_to(ROOT).as_posix() for p in (ROOT / 'Mod').glob('*.cs')]
     required += ['Mod/' + item.attrib['Include'] for item in project.findall('./ItemGroup/EmbeddedResource')]
     required += ['Mod/MGVR.csproj', 'Native/Bridge.cpp', 'Native/MGVR.Native.vcxproj',
-                 'Scripts/Package-Release.py', 'Scripts/Verify-Release.ps1', 'README.md', 'CHANGELOG.md']
+                 'Scripts/Package-Release.py', 'Scripts/Verify-Release.ps1', 'README.md', 'README.en.md', 'CHANGELOG.md']
     missing = sorted(set(required) - tracked)
     if missing:
         raise ValueError('Required release sources were not committed: ' + ', '.join(missing))
@@ -124,7 +124,8 @@ def main():
         raise ValueError('Unexpected XR subsystem manifest.')
 
     documents = {
-        'README.md': 'README.md', 'CHANGELOG.md': 'CHANGELOG.md', 'LICENSE': 'LICENSE',
+        'README.md': 'README.md', 'README.en.md': 'README.en.md',
+        'CHANGELOG.md': 'CHANGELOG.md', 'LICENSE': 'LICENSE',
         'Licenses/OpenVR-LICENSE.txt': 'ThirdParty/OpenVR/LICENSE',
         'Licenses/Unity-OpenXR-LICENSE.md': 'ThirdParty/UnityOpenXR/LICENSE.md',
         'Licenses/Unity-OpenXR-Third-Party-Notices.md': 'ThirdParty/UnityOpenXR/Third Party Notices.md',

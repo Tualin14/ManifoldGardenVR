@@ -32,7 +32,7 @@ internal enum VrText
     On,
     Off,
     TestBuildHint, TestLevels, LevelPointerHint, LevelNotice, Previous, Next,
-    LevelBusy, LoadingLevel, LevelStartFailed, LevelLoadFailed
+    LevelBusy, LoadingLevel, LevelStartFailed, LevelLoadFailed, HoldInput
 }
 
 internal static class VrMenuText

@@ -17,6 +17,7 @@ internal static class VrPointer
     {
         visible = false;
         VrInteractionFeedback.Clear();
+        VrSequenceProgress.Prepare();
         if (failed) return;
         try
         {
@@ -45,6 +46,7 @@ internal static class VrPointer
 
     internal static void Render(ScriptableRenderContext context, Camera view, RenderTexture target)
     {
+        VrSequenceProgress.Render(context, view, target);
         if (!visible || failed) return;
         CommandBuffer? cmd = null;
         try
@@ -55,8 +57,11 @@ internal static class VrPointer
                 if (material != null) Object.Destroy(material);
                 var shader = Shader.Find("UI/Default") ??
                              throw new InvalidOperationException("Pointer shader unavailable");
-                material = new Material(shader) { name = "MGVR right controller ray",
-                    hideFlags = HideFlags.HideAndDontSave };
+                material = new Material(shader)
+                {
+                    name = "MGVR right controller ray",
+                    hideFlags = HideFlags.HideAndDontSave
+                };
                 material.SetInt("unity_GUIZTestMode", (int)CompareFunction.LessEqual);
                 beam = new Mesh { name = "MGVR controller ray", hideFlags = HideFlags.HideAndDontSave };
                 beam.vertices = new Il2CppStructArray<Vector3>(new[]
@@ -101,6 +106,7 @@ internal static class VrPointer
 
     internal static void Release()
     {
+        VrSequenceProgress.Release();
         VrInteractionFeedback.Release();
         if (beam != null) Object.Destroy(beam);
         if (material != null) Object.Destroy(material);
