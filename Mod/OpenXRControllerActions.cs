@@ -158,7 +158,6 @@ internal static class OpenXRControllerActions
         Action("trigger", 1, "Trigger", "/input/trigger/value", "/input/trigger/value");
         Action("primarybutton", 0, "PrimaryButton", "/input/x/click", "/input/a/click");
         Action("secondarybutton", 0, "SecondaryButton", "/input/y/click", "/input/b/click");
-        Action("menubutton", 0, "MenuButton", "/input/menu/click", null);
         Action("grip", 1, "Grip", "/input/squeeze/value", "/input/squeeze/value");
         // No grip-pose hand models: expose OpenXR aim through the legacy XR device pose.
         Action("devicepose", 3, "Device", "/input/aim/pose", "/input/aim/pose");

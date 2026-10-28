@@ -6,7 +6,7 @@
         <EnableNETAnalyzers>false</EnableNETAnalyzers>
         <CheckEolTargetFramework>false</CheckEolTargetFramework>
         <AssemblyName>MGVR</AssemblyName>
-        <Version>1.0.1</Version>
+        <Version>1.0.3</Version>
         <Product>Manifold Garden VR</Product>
         <Authors>Tualin14</Authors>
         <Description>PC VR support for Manifold Garden.</Description>

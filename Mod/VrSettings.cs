@@ -4,7 +4,7 @@ namespace ManifoldProbe;
 
 internal sealed class VrSettings
 {
-    internal const int CurrentControlLayoutVersion = 1;
+    internal const int CurrentControlLayoutVersion = 2;
 
     public int ControlLayoutVersion { get; set; } = CurrentControlLayoutVersion;
 
@@ -58,9 +58,12 @@ internal sealed class VrSettings
                 : 0;
             if (storedLayout < CurrentControlLayoutVersion)
             {
-                // Adopt the agreed layout once, including previously customized mappings.
-                // Save preserves the old JSON as .bak and leaves turning/render settings intact.
-                VrBindings.ResetControls(settings);
+                // Version 1 adopted the fixed layout. Version 2 reserves X for
+                // the menu; only conflicting old mappings need their controls reset.
+                // Save backs up the JSON and preserves rendering/turning/haptics.
+                if (storedLayout < 1 || VrBindings.Actions.Any(action =>
+                        VrBindings.Get(settings, action) == VrButton.X))
+                    VrBindings.ResetControls(settings);
                 settings.ControlLayoutVersion = CurrentControlLayoutVersion;
             }
 

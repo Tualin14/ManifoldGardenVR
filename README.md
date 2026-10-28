@@ -1,12 +1,12 @@
 # Manifold Garden VR（MGVR）
 
-Manifold Garden 的非官方 PC VR Mod，当前版本 **1.0.1**。支持头部跟踪、Quest 手柄移动与转向、重力切换、射线交互、VR 菜单和震动反馈。需要拥有原游戏。
+Manifold Garden 的非官方 PC VR Mod，当前版本 **1.0.3**。支持头部跟踪、Quest 手柄移动与转向、重力切换、射线交互、VR 菜单和震动反馈。需要拥有原游戏。
 
 已验证：Windows x64、Steam 版、Quest 3、Virtual Desktop / VDXR。其他设备与运行时尚未系统验证。
 
 ## 安装与启动
 
-1. 在 [Releases](https://github.com/Tualin14/ManifoldGardenVR/releases) 下载 **`MGVR-1.0.1-Windows-x64.zip`**，不要下载 `Source code`。
+1. 在 [Releases](https://github.com/Tualin14/ManifoldGardenVR/releases) 下载 **`MGVR-1.0.3-Windows-x64.zip`**，不要下载 `Source code`。
 2. 退出游戏并备份存档。在 Steam 中右键游戏 → 管理 → 浏览本地文件，打开包含 `ManifoldGarden.exe` 的目录。
 3. 将压缩包内的全部文件和文件夹复制进去，合并文件夹并覆盖同名文件。更新时保留 `UserData` 和存档。
 4. 连接头显并进入 PCVR，在 Steam → 游戏属性 → 启动选项中填入 **`--vr`**，然后启动。
@@ -26,12 +26,13 @@ Manifold Garden 的非官方 PC VR Mod，当前版本 **1.0.1**。支持头部�
 | 右握把 | 切换重力 |
 | A / B | 顺时针 / 逆时针旋转物体 |
 | 长按 Y 约 1 秒 | 归位；先让摇杆回中并松开其他操作 |
-| X | 测试选关 |
-| 左手菜单键 | 暂停 / 继续 |
+| X | 菜单（暂停 / 继续） |
 
 扳机在食指处，握把在手柄侧面；左扳机和摇杆按下默认无动作。
 
 **菜单使用右手射线与右扳机：**按下、松开点击，按住拖动滑条，通过“返回 / Back”退出。长按 Y 可重新放置菜单。
+
+测试选关位于暂停菜单中，点击“返回”或按 X 回到暂停菜单，再按 X 继续游戏。手柄菜单键由头显或串流工具处理。
 
 ## VR 设置
 

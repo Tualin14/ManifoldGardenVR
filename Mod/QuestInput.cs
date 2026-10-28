@@ -13,20 +13,6 @@ internal static class QuestInput
     static ControllerContext context;
     static bool installed, failed;
     static HandInput left, right;
-    static int levelSelectFrame = -1;
-
-    internal static bool LevelSelectPressed
-    {
-        get
-        {
-            Sample();
-            if ((policy.Down & ControllerButtons.LevelSelect) == 0 || levelSelectFrame == Time.frameCount)
-                return false;
-            levelSelectFrame = Time.frameCount;
-            return true;
-        }
-    }
-
     // Read cached state without sampling devices or consuming a gameplay query.
     internal static string MovementState =>
         $"inputContext={context} inputFrame={sampledFrame} vrStick=({policy.MoveX:F4},{policy.MoveY:F4})";
@@ -124,10 +110,8 @@ internal static class QuestInput
             !InputDevices.TryGetFeatureValue_bool(device, "PrimaryButton", out var primary) ||
             !InputDevices.TryGetFeatureValue_bool(device, "SecondaryButton", out var secondary) ||
             !InputDevices.TryGetFeatureValue_float(device, "Grip", out var grip)) return default;
-        bool menu = false;
-        if (node == XRNode.LeftHand && !InputDevices.TryGetFeatureValue_bool(device, "MenuButton", out menu))
-            return default;
-        return new HandInput(device, true, stick.x, stick.y, trigger, primary, secondary, menu, Grip: grip);
+        // System menu controls are optional/reserved in streaming runtimes.
+        return new HandInput(device, true, stick.x, stick.y, trigger, primary, secondary, Grip: grip);
     }
 
     // Sample lazily on the first game query, once per Unity frame. Check gates on every
@@ -194,7 +178,7 @@ internal static class QuestInput
     {
         if (!RayMenuActive || !key.StartsWith("UI ", StringComparison.Ordinal)) return false;
         // Suppress native emulated gamepad/keyboard navigation as well as VR
-        // navigation. The menu button remains the only controller shortcut.
+        // navigation. X remains the dedicated return-to-game shortcut.
         if (key is not ("UI Confirm" or "UI Cancel" or "UI Tab Left" or "UI Tab Right" or
             "UI Return To Game")) return false;
         result = key == "UI Return To Game" && (state & ControllerButtons.ReturnToGame) != 0;

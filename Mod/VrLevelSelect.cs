@@ -51,24 +51,27 @@ internal static class VrLevelSelect
         return false;
     }
 
-    internal static void Tick()
+    internal static bool CanOpenFromPauseMenu
     {
-        if (!ready) return;
+        get
+        {
+            if (!ready || loading || !VrStartup.LaunchedInVr || !Il2Cpp.GameManager.IsInitialized ||
+                Il2Cpp.LevelLoader.IsOnTitleScreen || Il2Cpp.LevelLoader.IsLoadingOrPendingLoad ||
+                !Probe.HasWorldCamera || !Il2Cpp.GameManager.IsPaused) return false;
+            var ui = Il2Cpp.GameManager.UI;
+            var pause = ui?.pausePanelNew;
+            return pause != null && ui!.currentPanel == pause && pause.PanelActive &&
+                   pause.panelState == Il2Cpp.MenuPanel.PANEL_STATE.active;
+        }
+    }
+
+    internal static void OpenFromPauseMenu()
+    {
         try
         {
-            if (QuestInput.LevelSelectPressed)
-            {
-                if (panel != null && panel.PanelActive) Cancel();
-                else if (!loading && Il2Cpp.GameManager.IsInitialized && !Il2Cpp.LevelLoader.IsOnTitleScreen &&
-                         !Il2Cpp.LevelLoader.IsLoadingOrPendingLoad && Probe.HasWorldCamera)
-                {
-                    var ui = Il2Cpp.GameManager.UI;
-                    // Never interrupt settings popups, save/load dialogs or other native transitions.
-                    if (!Il2Cpp.GameManager.IsPaused || ui.currentPanel == ui.pausePanelNew &&
-                        ui.pausePanelNew.panelState == Il2Cpp.MenuPanel.PANEL_STATE.active)
-                        Open();
-                }
-            }
+            // Only the active pause menu can open the picker. Native popups,
+            // settings transitions and loading cannot be interrupted by a shortcut.
+            if (CanOpenFromPauseMenu) Open();
         }
         catch (Exception ex)
         {

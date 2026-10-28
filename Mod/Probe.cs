@@ -5,7 +5,7 @@ using MelonLoader;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-[assembly: MelonInfo(typeof(ManifoldProbe.Probe), "Manifold Garden VR", "1.0.1", "Tualin14")]
+[assembly: MelonInfo(typeof(ManifoldProbe.Probe), "Manifold Garden VR", "1.0.3", "Tualin14")]
 [assembly: MelonGame("William Chyr Studio", "Manifold Garden")]
 
 namespace ManifoldProbe;
@@ -52,7 +52,7 @@ public sealed class Probe : MelonMod
 
         // Without --vr, leave every hook, menu, configuration and diagnostic inactive.
         instance = this;
-        Write("PLUGIN_LOADED version=1.0.1");
+        Write("PLUGIN_LOADED version=1.0.3");
         VrStartup.Initialize(arguments: arguments);
     }
 
@@ -63,6 +63,7 @@ public sealed class Probe : MelonMod
         QuestInput.Install(HarmonyInstance);
         VrInteraction.Install(HarmonyInstance);
         VrSettingsMenu.Install(HarmonyInstance);
+        VrPauseMenu.Install(HarmonyInstance);
         VrLevelSelect.Install(HarmonyInstance);
         VrMenuPointer.Install(HarmonyInstance);
         VrHaptics.Install(HarmonyInstance);
@@ -366,7 +367,6 @@ public sealed class Probe : MelonMod
     {
         if (!VrStartup.LaunchedInVr) return;
         VrSettingsMenu.Tick();
-        VrLevelSelect.Tick();
         VrPauseMenu.Tick();
         VrMenuPointer.Tick();
         VrHaptics.Tick();

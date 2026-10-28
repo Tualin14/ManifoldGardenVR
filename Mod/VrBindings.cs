@@ -1,6 +1,7 @@
 namespace ManifoldProbe;
 
-// Stick clicks and the system/menu buttons deliberately cannot be assigned.
+// Stick clicks and system/menu buttons cannot be assigned. The legacy X enum
+// value remains readable for configuration migration; X is now menu-only.
 public enum VrButton
 {
     LeftTrigger,
@@ -55,7 +56,7 @@ internal static class VrBindings
         foreach (var action in Actions)
         {
             var button = Get(settings, action);
-            if (!Enum.IsDefined(typeof(VrButton), button) || !used.Add(button)) return false;
+            if (button == VrButton.X || !Enum.IsDefined(typeof(VrButton), button) || !used.Add(button)) return false;
         }
 
         return true;
@@ -64,7 +65,7 @@ internal static class VrBindings
     // Assigning an occupied button swaps the two actions, so none becomes inaccessible.
     internal static void Rebind(VrSettings settings, ControllerButtons action, VrButton button)
     {
-        if (!Actions.Contains(action) || !Enum.IsDefined(typeof(VrButton), button))
+        if (!Actions.Contains(action) || button == VrButton.X || !Enum.IsDefined(typeof(VrButton), button))
             throw new ArgumentOutOfRangeException();
         var previous = Get(settings, action);
         foreach (var other in Actions)

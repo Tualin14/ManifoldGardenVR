@@ -38,7 +38,6 @@ internal enum ControllerButtons
     Down = 4096,
     TabLeft = 8192,
     TabRight = 16384,
-    LevelSelect = 32768,
     MenuClick = 65536
 }
 
@@ -69,7 +68,7 @@ internal sealed class ControllerInputPolicy
             if (!armed)
             {
                 armed = hand.X * hand.X + hand.Y * hand.Y <= deadzone * deadzone && hand.Trigger < .2f &&
-                        hand.Grip < .2f && !hand.Primary && !hand.Secondary && !hand.Menu;
+                        hand.Grip < .2f && !hand.Primary && !hand.Secondary;
                 return false;
             }
 
@@ -134,7 +133,7 @@ internal sealed class ControllerInputPolicy
         bool leftReady = leftGate.Accept(left, deadzone), rightReady = rightGate.Accept(right, deadzone);
         bool recenterChord = leftReady && rightReady && left.Secondary &&
                              left.X * left.X + left.Y * left.Y <= deadzone * deadzone &&
-                             !left.Primary && !left.Menu && left.Trigger < .2f && left.Grip < .2f &&
+                             !left.Primary && left.Trigger < .2f && left.Grip < .2f &&
                              right.X * right.X + right.Y * right.Y <= deadzone * deadzone &&
                              !right.Primary && !right.Secondary && right.Trigger < .2f && right.Grip < .2f;
         if (!recenterChord)
@@ -152,18 +151,12 @@ internal sealed class ControllerInputPolicy
         if (!leftReady || !left.Secondary) recenterLatched = false;
         if (leftReady)
         {
-            if (left.Primary && context == ControllerContext.Gameplay)
-            {
-                bool assigned = false;
-                foreach (var action in VrBindings.Actions)
-                    assigned |= VrBindings.Get(settings ?? defaults, action) == VrButton.X;
-                if (!assigned) next |= ControllerButtons.LevelSelect;
-            }
+            // X belongs to the game menu. The hardware menu button belongs to
+            // the headset or streaming runtime and is never a game shortcut.
+            if (left.Primary)
+                next |= context == ControllerContext.Menu ? ControllerButtons.ReturnToGame : ControllerButtons.Pause;
             if (context == ControllerContext.Gameplay)
                 (MoveX, MoveY) = Deadzone(left.X, left.Y, deadzone);
-
-            if (left.Menu)
-                next |= context == ControllerContext.Menu ? ControllerButtons.ReturnToGame : ControllerButtons.Pause;
         }
 
         if (rightReady)
@@ -203,6 +196,11 @@ internal sealed class ControllerInputPolicy
         foreach (var action in VrBindings.Actions)
         {
             var source = VrBindings.Get(settings, action);
+            if (source == VrButton.X)
+            {
+                lost |= action; // Ignore legacy X mappings without synthesizing release actions.
+                continue;
+            }
             bool ready = VrBindings.IsLeft(source) ? leftReady : rightReady;
             if (!ready) lost |= action;
             int index = (int)source;
@@ -224,7 +222,7 @@ internal sealed class ControllerInputPolicy
         Up = held & ~next;
         // Losing a source clears held actions, but must not synthesize click-on-release actions.
         if (!leftReady)
-            Up &= ~(ControllerButtons.LevelSelect | ControllerButtons.Pause |
+            Up &= ~(ControllerButtons.Pause |
                     ControllerButtons.ReturnToGame | ControllerButtons.Right | ControllerButtons.Left |
                     ControllerButtons.Up | ControllerButtons.Down | ControllerButtons.TabLeft);
         if (!rightReady)
